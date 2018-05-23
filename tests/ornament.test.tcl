@@ -11,7 +11,8 @@ source [file join $ThisScriptDir test_helpers.tcl]
 package require ornament
 namespace import ornament::*
 
-test compile-1 {Returns correct error when incorrect ! template command used} \
+
+test compile-1 {Returns error when incorrect ! template command used} \
 -setup {
   set tpl {
 !hello
@@ -20,6 +21,7 @@ test compile-1 {Returns correct error when incorrect ! template command used} \
   compile $tpl
 } -returnCodes {error} \
 -result {unrecognized template command '!h' at start of line number: 2}
+
 
 test compile-2 {Returns no error !! immediately followed by valid text} \
 -setup {
@@ -30,6 +32,16 @@ a: $a
 } -body {
   llength [split [compile $tpl] "\n"]
 } -returnCodes {OK} -result {7}
+
+
+test compile-3 {Returns error when invalid commandChar used} \
+-setup {
+  set tpl {
+!* commandChar <
+  }
+} -body {
+  compile $tpl
+} -returnCodes {error} -result {invalid config commandChar: <}
 
 
 test run-1 {Returns correct result for template with no newline at end} \
@@ -203,7 +215,7 @@ Next year he will be: 38
 }
 
 
-test run-9 {Returns correct error when invalid command used} \
+test run-9 {Returns error when invalid command used} \
 -setup {
   set tpl {
 ! bob
@@ -214,7 +226,7 @@ test run-9 {Returns correct error when invalid command used} \
 } -returnCodes {error} -result {invalid command name "bob"}
 
 
-test run-10 {Returns correct error when invalid variable used} \
+test run-10 {Returns error when invalid variable used} \
 -setup {
   set tpl {
     $bob
@@ -223,6 +235,30 @@ test run-10 {Returns correct error when invalid variable used} \
 } -body {
   run $script
 } -returnCodes {error} -result {can't read "bob": no such variable}
+
+
+test run-11 {Returns correct result when ornament command changed} \
+-setup {
+  set tpl {
+Some facts:
+!* commandChar %
+% set name "Fred"
+%%set age 37
+$name is $age
+%* commandChar @
+@# this is now a comment
+@* commandChar ~
+~# now this is a comment
+~* commandChar !
+!# now we're back to ! as the commandChar for this comment
+}
+  set script [compile $tpl]
+} -body {
+  run $script {} $vars
+} -result {
+Some facts:
+Fred is 37
+}
 
 
 cleanupTests

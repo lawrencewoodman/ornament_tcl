@@ -15,25 +15,29 @@ namespace eval ornament {
 # Inspired by: http://wiki.tcl.tk/18455
 # Compiles the template into a script
 proc ornament::compile {tpl {var _OUT}} {
+  set cfg [dict create commandChar "!"]
   set script ""
   set lines [split $tpl "\n"]
   set lineNum 1
   set lastLineNum [expr {[llength $lines]}]
+
   foreach line $lines {
-    # A template command consists of an '!' followed by another character
+    set commandChar [dict get $cfg commandChar]
+    # A template command consists of $commandChar followed by another character
     # or is the only character on a line
-    if {[string index $line 0] eq "!"} {
-      switch -regexp $line {
-        {^!#.*$}  -
-        {^!!\s*$} -
-        {^!\s*$}  {}
-        {^!!.*$}  -
-        {^! .*$}  {append script "[string range $line 2 end]\n"}
+    if {[string index $line 0] eq $commandChar} {
+      switch -regexp [string range $line 1 end] [list \
+        {^#.*$}  - \
+        "^$commandChar\\s*$" - \
+        {^\s*$}  {} \
+        "^$commandChar.*$"  - \
+        {^ .*$}  {append script "[string range $line 2 end]\n"} \
+        {^\*.*$} {set cfg [ProcessCfg $cfg [string range $line 2 end]]} \
         default {
           return -code error \
             "unrecognized template command '[string range $line 0 1]' at start of line number: $lineNum"
-        }
-      }
+        } \
+      ]
     } elseif {$lineNum != $lastLineNum} {
       append script "append $var \"\[" [list subst $line] "]\n\"\n"
     } else {
@@ -44,6 +48,7 @@ proc ornament::compile {tpl {var _OUT}} {
   }
   return $script
 }
+
 
 # Runs the compiled template script with the supplied cmds and vars in dicts
 proc ornament::run {script {cmds {}} {vars {}}} {
@@ -62,4 +67,25 @@ proc ornament::run {script {cmds {}} {vars {}}} {
   } finally {
     interp delete $safeInterp
   }
+}
+
+proc ornament::ProcessCfg {cfg newCfgString} {
+  if {[llength $newCfgString] % 2 != 0} {
+    return -code error "invalid config string"
+  }
+  dict for {f v} $newCfgString {
+    switch $f {
+      commandChar {
+        set validCommandChars {! % @ ~}
+        if {[lsearch $validCommandChars $v] == -1} {
+          return -code error -level 2 "invalid config commandChar: $v"
+        }
+      }
+      default {
+        return -code error -level 2 "invalid config field: $f"
+      }
+    }
+    dict set cfg $f $v
+  }
+  return $cfg
 }

@@ -38,6 +38,11 @@ The `compile` command takes a template and outputs a script which can then be us
     Age: $age
     !# Below a command is called that has been passed to the template:
     I want to say: [greet $name]
+
+    !# You can change the command character to anyone of {! % @ ~}
+    !* commandChar %
+    % set nextAge [expr {$age + 2}]
+    nextAge: $nextAge
     }
 
     set expected {
@@ -52,6 +57,8 @@ The `compile` command takes a template and outputs a script which can then be us
     Name: Brodie
     Age: 37
     I want to say: hello Brodie
+
+    nextAge: 39
     }
 
     # You can pass commands to the template
