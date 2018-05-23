@@ -1,5 +1,8 @@
 ornament
 ========
+
+[![Build Status](https://travis-ci.org/lawrencewoodman/ornament_tcl.svg?branch=master)](https://travis-ci.org/lawrencewoodman/ornament_tcl)
+
 A Tcl template module
 
 This module provides a simple way to define, parse and compile a template to produce a script which can then be run using a safe interpreter.  The idea came from the [Templates and subst](https://wiki.tcl.tk/18455) page of the [Tclers Wiki](https://wiki.tcl.tk).
