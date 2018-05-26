@@ -47,6 +47,25 @@ I want to say: [greet $name]
 !* commandChar %
 % set nextAge [expr {$age + 2}]
 nextAge: $nextAge
+%* commandChar !
+
+!# You can change whether variable substitution happens
+!* variableSubst false
+look at this: $nextAge
+!* variableSubst true
+and now: $nextAge
+
+!# You can change whether command substitution happens
+!* commandSubst false
+look at this: [expr {5 + 6}]
+!* commandSubst true
+and now: [expr {5 + 6}]
+
+!# You can change whether backslash substitution happens
+!* backslashSubst false
+look at this:\n
+!* backslashSubst true
+and now:\n
 }
 
 set expected {
@@ -63,6 +82,16 @@ Age: 37
 I want to say: hello Brodie
 
 nextAge: 39
+
+look at this: $nextAge
+and now: 39
+
+look at this: [expr {5 + 6}]
+and now: 11
+
+look at this:\n
+and now:
+
 }
 
 # You can pass commands to the template

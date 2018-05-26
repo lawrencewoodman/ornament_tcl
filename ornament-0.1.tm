@@ -15,7 +15,13 @@ namespace eval ornament {
 # Inspired by: http://wiki.tcl.tk/18455
 # Compiles the template into a script
 proc ornament::compile {tpl {var _OUT}} {
-  set cfg [dict create commandChar "!"]
+  set cfg {
+    commandChar "!"
+    backslashSubst true
+    commandSubst true
+    variableSubst true
+  }
+
   set script ""
   set lines [split $tpl "\n"]
   set lineNum 1
@@ -38,11 +44,16 @@ proc ornament::compile {tpl {var _OUT}} {
             "unrecognized template command '[string range $line 0 1]' at start of line number: $lineNum"
         } \
       ]
-    } elseif {$lineNum != $lastLineNum} {
-      append script "append $var \"\[" [list subst $line] "]\n\"\n"
     } else {
-      # This stops you from getting an extra newline at the end
-      append script "append $var \"\[" [list subst $line] "]\"\n"
+      set substOptions [MakeSubstOptions $cfg]
+      if {$lineNum != $lastLineNum} {
+        append script \
+          "append $var \"\[" [list subst {*}$substOptions $line] "]\n\"\n"
+      } else {
+        # This stops you from getting an extra newline at the end
+        append script \
+          "append $var \"\[" [list subst {*}$substOptions $line] "]\"\n"
+      }
     }
     incr lineNum
   }
@@ -78,7 +89,22 @@ proc ornament::ProcessCfg {cfg newCfgString} {
       commandChar {
         set validCommandChars {! % @ ~}
         if {[lsearch $validCommandChars $v] == -1} {
-          return -code error -level 2 "invalid config commandChar: $v"
+          return -code error -level 2 "invalid config commandChar value: $v"
+        }
+      }
+      backslashSubst {
+        if {![string is boolean -strict $v]} {
+          return -code error -level 2 "invalid config backslashSubst value: $v"
+        }
+      }
+      commandSubst {
+        if {![string is boolean -strict $v]} {
+          return -code error -level 2 "invalid config commandSubst value: $v"
+        }
+      }
+      variableSubst {
+        if {![string is boolean -strict $v]} {
+          return -code error -level 2 "invalid config variableSubst value: $v"
         }
       }
       default {
@@ -88,4 +114,19 @@ proc ornament::ProcessCfg {cfg newCfgString} {
     dict set cfg $f $v
   }
   return $cfg
+}
+
+proc ornament::MakeSubstOptions {cfg} {
+  set substOptions [list]
+  set map [dict create \
+    backslashSubst -nobackslashes \
+    commandSubst -nocommands \
+    variableSubst -novariables \
+  ]
+  foreach {configName substOption} $map {
+    if {![dict get $cfg $configName]} {
+      lappend substOptions $substOption
+    }
+  }
+  return $substOptions
 }

@@ -41,7 +41,25 @@ test compile-3 {Returns error when invalid commandChar used} \
   }
 } -body {
   compile $tpl
-} -returnCodes {error} -result {invalid config commandChar: <}
+} -returnCodes {error} -result {invalid config commandChar value: <}
+
+test compile-4 {Returns error when invalid config field used} \
+-setup {
+  set tpl {
+!* ommandChar <
+  }
+} -body {
+  compile $tpl
+} -returnCodes {error} -result {invalid config field: ommandChar}
+
+test compile-5 {Returns error when odd number of config entries} \
+-setup {
+  set tpl {
+!* commandChar
+  }
+} -body {
+  compile $tpl
+} -returnCodes {error} -result {invalid config string}
 
 
 test run-1 {Returns correct result for template with no newline at end} \
@@ -254,10 +272,70 @@ $name is $age
 }
   set script [compile $tpl]
 } -body {
-  run $script {} $vars
+  run $script
 } -result {
 Some facts:
 Fred is 37
+}
+
+
+test run-12 {Returns correct result when config variableSubst changed} \
+-setup {
+  set tpl {
+A person called: $name
+!* variableSubst false
+A person called: $name
+!* variableSubst true
+A person called: $name
+}
+  set vars {name Harry}
+  set script [compile $tpl]
+} -body {
+  run $script {} $vars
+} -result {
+A person called: Harry
+A person called: $name
+A person called: Harry
+}
+
+
+test run-13 {Returns correct result when config commandSubst changed} \
+-setup {
+  set tpl {
+1 + 2 == [expr {1+2}]
+!* commandSubst false
+1 + 2 == [expr {1+2}]
+!* commandSubst true
+1 + 2 == [expr {1+2}]
+}
+  set script [compile $tpl]
+} -body {
+  run $script
+} -result {
+1 + 2 == 3
+1 + 2 == [expr {1+2}]
+1 + 2 == 3
+}
+
+
+test run-14 {Returns correct result when config backslashSubst changed} \
+-setup {
+  set tpl {
+hello\n
+!* backslashSubst false
+hello\n
+!* backslashSubst true
+hello\n
+}
+  set script [compile $tpl]
+} -body {
+  run $script
+} -result {
+hello
+
+hello\n
+hello
+
 }
 
 
