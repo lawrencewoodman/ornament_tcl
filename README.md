@@ -26,6 +26,13 @@ proc CmdGreet {greeting int name} {
 
 # This is the template
 set tpl {
+!# You can configure ornament the defaults are:
+!#    commandChar     !
+!#    commandSubst    false
+!#    variableSubst   false
+!#    backslashSubst  false
+!* commandSubst true variableSubst true backslashSubst true
+!#
 This is some normal text
 !# This is a comment and is ignored by `compile`
 !# The following line will be executed as it begins with a `!` followed by a space

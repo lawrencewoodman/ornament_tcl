@@ -65,6 +65,7 @@ test compile-5 {Returns error when odd number of config entries} \
 test run-1 {Returns correct result for template with no newline at end} \
 -setup {
   set tpl {
+!* commandSubst true
 Here is an addition:
   1 + 2 == [expr {1+2}]}
   set script [compile $tpl]
@@ -79,6 +80,7 @@ Here is an addition:
 test run-2 {Returns correct result for template with newline at end} \
 -setup {
   set tpl {
+!* commandSubst true
 Here is an addition:
   1 + 2 == [expr {1+2}]
 }
@@ -95,6 +97,7 @@ Here is an addition:
 test run-3 {Returns correct result when ! is used to create a loop} \
 -setup {
   set tpl {
+!* commandSubst true variableSubst true
 Here are [expr {1+2}] numbers:
 !
 ! for {set i 0} {$i < 3} {incr i} {
@@ -119,6 +122,7 @@ That's all folks!
 test run-4 {Returns correct result when !! is used to create a loop} \
 -setup {
   set tpl {
+!* commandSubst true variableSubst true
 Here are [expr {1+2}] numbers:
 !!
 !! for {set i 0} {$i < 3} {incr i} {
@@ -143,6 +147,7 @@ That's all folks!
 test run-5 {Returns correct result when !# is as a comment} \
 -setup {
   set tpl {
+!* commandSubst true variableSubst true
 Here are [expr {1+2}] numbers:
 !#########################
 !# here are some comments
@@ -189,6 +194,7 @@ and finally so is this
 test run-7 {Returns correct result when an external command is called} \
 -setup {
   set tpl {
+!* commandSubst true variableSubst true
 ! plugin {
 !   proc add2 {n} {
 !     return [expr {$n + 2}]
@@ -217,6 +223,7 @@ In two years he will be: 39
 test run-8 {Returns correct result when an external var is used} \
 -setup {
   set tpl {
+!* commandSubst true variableSubst true
 His name: $name
 ! set ageNext [expr {$age+1}]
 His age: $age
@@ -247,6 +254,7 @@ test run-9 {Returns error when invalid command used} \
 test run-10 {Returns error when invalid variable used} \
 -setup {
   set tpl {
+!* variableSubst true
     $bob
   }
   set script [compile $tpl]
@@ -258,6 +266,7 @@ test run-10 {Returns error when invalid variable used} \
 test run-11 {Returns correct result when ornament command changed} \
 -setup {
   set tpl {
+!* variableSubst true
 Some facts:
 !* commandChar %
 % set name "Fred"
@@ -283,9 +292,9 @@ test run-12 {Returns correct result when config variableSubst changed} \
 -setup {
   set tpl {
 A person called: $name
-!* variableSubst false
-A person called: $name
 !* variableSubst true
+A person called: $name
+!* variableSubst false
 A person called: $name
 }
   set vars {name Harry}
@@ -293,9 +302,9 @@ A person called: $name
 } -body {
   run $script {} $vars
 } -result {
-A person called: Harry
 A person called: $name
 A person called: Harry
+A person called: $name
 }
 
 
@@ -303,18 +312,18 @@ test run-13 {Returns correct result when config commandSubst changed} \
 -setup {
   set tpl {
 1 + 2 == [expr {1+2}]
-!* commandSubst false
-1 + 2 == [expr {1+2}]
 !* commandSubst true
+1 + 2 == [expr {1+2}]
+!* commandSubst false
 1 + 2 == [expr {1+2}]
 }
   set script [compile $tpl]
 } -body {
   run $script
 } -result {
-1 + 2 == 3
 1 + 2 == [expr {1+2}]
 1 + 2 == 3
+1 + 2 == [expr {1+2}]
 }
 
 
@@ -322,20 +331,19 @@ test run-14 {Returns correct result when config backslashSubst changed} \
 -setup {
   set tpl {
 hello\n
-!* backslashSubst false
-hello\n
 !* backslashSubst true
+hello\n
+!* backslashSubst false
 hello\n
 }
   set script [compile $tpl]
 } -body {
   run $script
 } -result {
-hello
-
 hello\n
 hello
 
+hello\n
 }
 
 

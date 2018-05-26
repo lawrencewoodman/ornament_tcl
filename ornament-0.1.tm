@@ -17,9 +17,9 @@ namespace eval ornament {
 proc ornament::compile {tpl {var _OUT}} {
   set cfg {
     commandChar "!"
-    backslashSubst true
-    commandSubst true
-    variableSubst true
+    backslashSubst false
+    commandSubst false
+    variableSubst false
   }
 
   set script ""
