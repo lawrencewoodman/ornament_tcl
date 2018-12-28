@@ -39,9 +39,22 @@ This is some normal text
 ! for {set i 0} {$i < 5} {incr i} {
     Number: $i
 ! }
+
 !# You can also use `!!` followed by a space instead of a `!`
 !! set flow 152
 flow: $flow
+
+!# You can use `\` at the end of a line beginning with `!` or `!!` to
+!# continue it
+! set nums [list 1 2 \
+                 3 4]
+nums: $nums
+
+!# Alternatively you can continue a line using `!\` at the start
+!\ set letters [list a b
+!                    c d]
+letters: $letters
+
 !# Creates a comment that will be ignored by `compile`
  ! Because the ! wasn't in the first column of the line, this line isn't executed
 !# Below some variables are used that have been passed to the template:
@@ -82,7 +95,13 @@ This is some normal text
     Number: 2
     Number: 3
     Number: 4
+
 flow: 152
+
+nums: 1 2 3 4
+
+letters: a b c d
+
  ! Because the ! wasn't in the first column of the line, this line isn't executed
 Name: Brodie
 Age: 37
@@ -122,7 +141,7 @@ Installation
 ------------
 To install the module you can use the [installmodule.tcl](https://github.com/LawrenceWoodman/installmodule_tcl) script or if you want to manually copy the file `configurator-*.tm` to a specific location that Tcl expects to find modules.  This would typically be something like:
 
-    /usr/share/tcltk/tcl8.5/tcl8/
+    /usr/share/tcltk/tcl8.6/tcl8/
 
 To find out what directories are searched for modules, start `tclsh` and enter:
 

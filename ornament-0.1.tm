@@ -36,6 +36,7 @@ proc ornament::compile {tpl {var _OUT}} {
         {^#.*$}  - \
         "^$commandChar\\s*$" - \
         {^\s*$}  {} \
+        {^\\.*$} {append script "[string range $line 2 end] "} \
         "^$commandChar.*$"  - \
         {^ .*$}  {append script "[string range $line 2 end]\n"} \
         {^\*.*$} {set cfg [ProcessCfg $cfg [string range $line 2 end]]} \

@@ -346,5 +346,56 @@ hello
 hello\n
 }
 
+test run-15 {Returns correct result when \ used at end of a ! or !! line} \
+-setup {
+  set tpl {
+!* variableSubst true
+! set nums [list 1 2 \
+                3 4]
+!! set letters [list a b \
+                     c d]
+! foreach n $nums {
+    $n
+! }
+! foreach l $letters {
+    $l
+! }
+}
+  set script [compile $tpl]
+} -body {
+  run $script
+} -result {
+    1
+    2
+    3
+    4
+    a
+    b
+    c
+    d
+}
+
+
+test run-16 {Returns correct result when !\ used instead of a continued ! line} \
+-setup {
+  set tpl {
+!* variableSubst true
+!\ for {set i 0}
+!\     {$i < 5}
+!      {incr i} {
+      $i
+!   }
+}
+  set script [compile $tpl]
+} -body {
+  run $script
+} -result {
+      0
+      1
+      2
+      3
+      4
+}
+
 
 cleanupTests
