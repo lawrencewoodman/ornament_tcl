@@ -14,3 +14,8 @@ proc TestHelpers::CmdPlugin {int script} {
   return [$int eval $script]
 }
 
+proc TestHelpers::CmdOrnament {int template vars} {
+  set cmds [dict create ornament [list ::TestHelpers::CmdOrnament]]
+  set script [compile $template]
+  return [run $script $cmds $vars]
+}

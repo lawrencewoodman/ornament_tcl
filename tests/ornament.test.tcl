@@ -398,4 +398,46 @@ test run-16 {Returns correct result when !\ used instead of a continued ! line} 
 }
 
 
+test run-17 {Ensure safe predefined aliases work properly and are not removed when interp reset} \
+-setup {
+  set tpl {
+!* variableSubst true
+! set x [clock scan 2018-12-29 -format %Y-%m-%d]
+$x
+}
+  set script [compile $tpl]
+} -body {
+  for {set i 0} {$i < 3} {incr i} {
+    lappend output [string trim [run $script]]
+  }
+  return $output
+} -result {1546041600 1546041600 1546041600}
+
+
+test run-18 {Ensure can process multiple subtemplates without corruption} \
+-setup {
+  set tpl {
+!* commandSubst true variableSubst true
+!  set someNum 78
+!  set vars [dict create tpl2 $tpl2 num 25]
+[list {*}[ornament $tpl2 $vars] $someNum]
+}
+set tpl2 {
+!* commandSubst true variableSubst true
+! set someNum $num
+! if {$num > 0} {
+!   set vars [dict create tpl2 $tpl2 num [expr {$num-1}]]
+    [ornament $tpl2 $vars]
+! }
+$someNum
+}
+  set script [compile $tpl]
+  set cmds [dict create ornament [list ::TestHelpers::CmdOrnament]]
+  set vars [dict create tpl2 $tpl2]
+} -body {
+  run $script $cmds $vars
+} -result {
+0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 78
+}
+
 cleanupTests

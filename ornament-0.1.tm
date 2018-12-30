@@ -10,6 +10,8 @@ package require Tcl 8.6
 namespace eval ornament {
   namespace export {[a-z]*}
   namespace ensemble create
+  # The normal number of safe interpreters ready for use
+  variable BASE_NUM_INTERPS 10
 }
 
 # Inspired by: http://wiki.tcl.tk/18455
@@ -64,20 +66,89 @@ proc ornament::compile {tpl {var _OUT}} {
 
 # Runs the compiled template script with the supplied cmds and vars in dicts
 proc ornament::run {script {cmds {}} {vars {}}} {
-  set safeInterp [interp create -safe]
+  set safeInterp [GetInterp]
   try {
-    $safeInterp eval {unset {*}[info vars]}
     dict for {templateCmdName cmdInvokation} $cmds {
       $safeInterp alias $templateCmdName {*}$cmdInvokation $safeInterp
     }
     dict for {varName value} $vars {
-      $safeInterp eval "set $varName $value"
+      $safeInterp eval [list set $varName $value]
     }
     return [$safeInterp eval $script]
   } on error {result options} {
     return -code error $result
   } finally {
-    interp delete $safeInterp
+    FreeInterp $safeInterp
+  }
+}
+
+proc ornament::Init {} {
+  variable safeInterps
+  variable safeAliases
+  variable BASE_NUM_INTERPS
+  for {set i 0} {$i < $BASE_NUM_INTERPS} {incr i} {
+    NewInterp
+  }
+  lassign [dict keys $safeInterps] firstInterp
+  # The initial aliases are recorded as they can be useful for things
+  # such as clock
+  foreach aliasToken [$firstInterp aliases] {
+    dict set safeAliases $aliasToken [$firstInterp alias $aliasToken]
+  }
+}
+
+proc ornament::ResetInterp {interpName} {
+  variable safeAliases
+  $interpName eval {unset {*}[info vars]}
+  foreach aliasToken [$interpName aliases] {
+    $interpName alias $aliasToken {}
+  }
+  dict for {aliasToken target} $safeAliases {
+    $interpName alias $aliasToken {*}$target
+  }
+}
+
+# Returns a safe interpreter
+proc ornament::GetInterp {} {
+  variable safeInterps
+  dict for {name inUse} $safeInterps {
+    if {!$inUse} {
+      dict set safeInterps $name true
+      ResetInterp $name
+      return $name
+    }
+  }
+  set safeInterp [NewInterp]
+  dict set safeInterps $safeInterp true
+  return $safeInterp
+}
+
+proc ornament::NewInterp {} {
+  variable safeInterps
+  set interpName [namespace which [interp create -safe]]
+  $interpName eval {unset {*}[info vars]}
+  dict set safeInterps $interpName false
+  return $interpName
+}
+
+# Call when finished with an interpreter to mark it as no longer
+# being used
+proc ornament::FreeInterp {interpName} {
+  variable BASE_NUM_INTERPS
+  variable safeInterps
+  dict set safeInterps $interpName false
+  dict for {name inUse} $safeInterps {
+    if {$inUse} {
+      return
+    }
+  }
+  set names [dict keys $safeInterps]
+  if {[llength $names] > $BASE_NUM_INTERPS} {
+    set excessNames [lrange $names $BASE_NUM_INTERPS end]
+    foreach name $excessNames {
+      dict unset safeInterps $name
+      interp delete [namespace tail $name]
+    }
   }
 }
 
@@ -131,3 +202,5 @@ proc ornament::MakeSubstOptions {cfg} {
   }
   return $substOptions
 }
+
+namespace eval ornament {Init}
