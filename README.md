@@ -7,149 +7,15 @@ A Tcl template module
 
 This module provides a simple way to define, parse and compile a template to produce a script which can then be run using a safe interpreter.  The idea came from the [Templates and subst](https://wiki.tcl.tk/18455) page of the [Tclers Wiki](https://wiki.tcl.tk).
 
+Please see [Introducing Ornament a Tcl Template Module](https://techtinkering.com/articles/introducing-ornament-a-tcl-template-module/) for details on how to use it.
+
 Requirements
 ------------
 *  Tcl 8.6+
 
-Module Usage
-------------
-The `compile` command takes a template and outputs a script which can then be used with the `run` command which will evaluate it using a safe interpreter to create its final output.
-
-```tcl
-package require ornament
-namespace import ornament::*
-
-# int is the safe interpreter that is running the script
-proc CmdGreet {greeting int name} {
-  return "$greeting $name"
-}
-
-# This is the template
-set tpl {
-!# You can configure ornament the defaults are:
-!#    commandChar     !
-!#    commandSubst    false
-!#    variableSubst   false
-!#    backslashSubst  false
-!* commandSubst true variableSubst true backslashSubst true
-!#
-This is some normal text
-!# This is a comment and is ignored by `compile`
-!# The following line will be executed as it begins with a `!` followed by a space
-! for {set i 0} {$i < 5} {incr i} {
-    Number: $i
-! }
-
-!# You can also use `!!` followed by a space instead of a `!`
-!! set flow 152
-flow: $flow
-
-!# You can use `\` at the end of a line beginning with `!` or `!!` to
-!# continue it
-! set nums [list 1 2 \
-                 3 4]
-nums: $nums
-
-!# Alternatively you can continue a line using `!\` at the start
-!\ set letters [list a b
-!                    c d]
-letters: $letters
-
-!# Creates a comment that will be ignored by `compile`
- ! Because the ! wasn't in the first column of the line, this line isn't executed
-!# Below some variables are used that have been passed to the template:
-Name: $name
-Age: $age
-!# Below a command is called that has been passed to the template:
-I want to say: [greet $name]
-
-!# You can change the command character to anyone of {! % @ ~}
-!* commandChar %
-% set nextAge [expr {$age + 2}]
-nextAge: $nextAge
-%* commandChar !
-
-!# You can change whether variable substitution happens
-!* variableSubst false
-look at this: $nextAge
-!* variableSubst true
-and now: $nextAge
-
-!# You can change whether command substitution happens
-!* commandSubst false
-look at this: [expr {5 + 6}]
-!* commandSubst true
-and now: [expr {5 + 6}]
-
-!# You can change whether backslash substitution happens
-!* backslashSubst false
-look at this:\n
-!* backslashSubst true
-and now:\n
-}
-
-set expected {
-This is some normal text
-    Number: 0
-    Number: 1
-    Number: 2
-    Number: 3
-    Number: 4
-
-flow: 152
-
-nums: 1 2 3 4
-
-letters: a b c d
-
- ! Because the ! wasn't in the first column of the line, this line isn't executed
-Name: Brodie
-Age: 37
-I want to say: hello Brodie
-
-nextAge: 39
-
-look at this: $nextAge
-and now: 39
-
-look at this: [expr {5 + 6}]
-and now: 11
-
-look at this:\n
-and now:
-
-}
-
-# You can pass commands to the template
-set cmds [dict create greet [list CmdGreet "hello"]]
-
-# You can pass variables to the template
-set vars [dict create name Brodie age 37]
-
-set script [compile $tpl]
-set output [run $script $cmds $vars]
-
-puts "\noutput\n======\n$output"
-
-if {$output ne $expected} {
-  puts stderr "\nError\n=====\n** Output isn't as expected **"
-}
-```
-
-
 Installation
 ------------
-To install the module you can use the [installmodule.tcl](https://github.com/LawrenceWoodman/installmodule_tcl) script or if you want to manually copy the file `ornament-*.tm` to a specific location that Tcl expects to find modules.  This would typically be something like:
-
-    /usr/share/tcltk/tcl8.6/tcl8/
-
-To find out what directories are searched for modules, start `tclsh` and enter:
-
-    foreach dir [split [::tcl::tm::path list]] {puts $dir}
-
-or from the command line:
-
-    $ echo "foreach dir [split [::tcl::tm::path list]] {puts \$dir}" | tclsh
+To install the module you can use the [installmodule.tcl](https://github.com/LawrenceWoodman/installmodule_tcl) script or if you want to manually copy the file `ornament-*.tm` to a specific location that Tcl expects to find modules.
 
 Testing
 -------
@@ -171,6 +37,6 @@ If you find a bug, please report it at the project's [issues tracker](https://gi
 
 Licence
 -------
-Copyright (C) 2018 Lawrence Woodman <lwoodman@vlifesystems.com>
+Copyright (C) 2018-2019 Lawrence Woodman <lwoodman@vlifesystems.com>
 
 This software is licensed under an MIT Licence.  Please see the file, [LICENCE.md](https://github.com/lawrencewoodman/ornament_tcl/blob/master/LICENCE.md), for details.

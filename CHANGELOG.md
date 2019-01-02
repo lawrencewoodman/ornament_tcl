@@ -1,3 +1,3 @@
-## Master
+## 0.1 (2nd Jan 2019)
 
- * Working towards intial release
+ * Initial release of ornament
