@@ -28,5 +28,3 @@ set benchmarks {
 dict for {procName numIterations} $benchmarks {
   puts "$procName: [$procName $numIterations]"
 }
-
-# 704.7868 ms per iteration
