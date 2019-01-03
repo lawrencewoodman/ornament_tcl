@@ -36,9 +36,7 @@ a: $a
 
 test compile-3 {Returns error when invalid commandChar used} \
 -setup {
-  set tpl {
-!* commandChar <
-  }
+  set tpl {!* commandChar <}
 } -body {
   compile $tpl
 } -returnCodes {error} -result {invalid config commandChar value: <}
@@ -60,6 +58,13 @@ test compile-5 {Returns error when odd number of config entries} \
 } -body {
   compile $tpl
 } -returnCodes {error} -result {invalid config string}
+
+test compile-6 {Returns error when invalid commandChar used specifically * as slipping through} \
+-setup {
+  set tpl {!* commandChar *}
+} -body {
+  compile $tpl
+} -returnCodes {error} -result {invalid config commandChar value: *}
 
 
 test run-1 {Returns correct result for template with no newline at end} \

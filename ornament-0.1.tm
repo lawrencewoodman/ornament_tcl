@@ -160,7 +160,7 @@ proc ornament::ProcessCfg {cfg newCfgString} {
     switch $f {
       commandChar {
         set validCommandChars {! % @ ~}
-        if {[lsearch $validCommandChars $v] == -1} {
+        if {[lsearch -exact $validCommandChars $v] == -1} {
           return -code error -level 2 "invalid config commandChar value: $v"
         }
       }
